@@ -15,7 +15,7 @@ metadata {
 	definition (name: "Honeywell T6 Pro", namespace: "prjct92eh2", author: "prjct92eh2") {
 		capability "Actuator"
 		capability "Temperature Measurement"
-        capability "Relative Humidity Measurement"
+        	capability "Relative Humidity Measurement"
 		capability "Thermostat"
 		capability "Refresh"
 		capability "Sensor"
@@ -34,7 +34,7 @@ metadata {
 		fingerprint deviceId: "0x08"
 		fingerprint inClusters: "0x43,0x40,0x44,0x31"
 		fingerprint mfr:"0039", prod:"0011", model:"0001", deviceJoinName: "Honeywell Z-Wave Thermostat"
-        fingerprint mfr:"0039", prod:"0011", model:"0008", deviceJoinName: "Honeywell T6 Pro Z-Wave Thermostat"//Added by prjct92eh2
+        	fingerprint mfr:"0039", prod:"0011", model:"0008", deviceJoinName: "Honeywell T6 Pro Z-Wave Thermostat"//Added by prjct92eh2
 	}
 
 	tiles {
@@ -97,10 +97,10 @@ metadata {
 		standardTile("raiseCoolSetpoint", "device.heatingSetpoint", width:2, height:1, inactiveLabel: false, decoration: "flat") {
 			state "heatingSetpoint", action:"raiseCoolSetpoint", icon:"st.thermostat.thermostat-right"
 		}
-		standardTile("thermostatOperatingState", "device.thermostatOperatingState", width: 2, height:1, decoration: "flat") {
+		standardTile("thermostatOperatingState", "device.thermostatOperatingState", width: 2, height:2, decoration: "flat") {
 			state "thermostatOperatingState", label:'${currentValue}', backgroundColor:"#ffffff"
 		}
-		standardTile("refresh", "device.thermostatMode", width:2, height:1, inactiveLabel: false, decoration: "flat") {
+		standardTile("refresh", "device.thermostatMode", width:2, height:2, inactiveLabel: false, decoration: "flat") {
 			state "default", action:"refresh.refresh", icon:"st.secondary.refresh"
 		}
         valueTile("humidity", "device.humidity", width: 2, height: 2, inactiveLabel: false) {
@@ -114,7 +114,7 @@ metadata {
         }        
 		main "temperature"
 		details(["temperature", "lowerHeatingSetpoint", "heatingSetpoint", "raiseHeatingSetpoint", "lowerCoolSetpoint",
-				"coolingSetpoint", "raiseCoolSetpoint", "mode", "fanMode", "thermostatOperatingState", "refresh", "humidity"])
+				"coolingSetpoint", "raiseCoolSetpoint", "mode", "fanMode", "humidity", "thermostatOperatingState", "refresh"])
 	}
 }
 
