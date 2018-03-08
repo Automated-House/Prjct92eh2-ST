@@ -12,7 +12,7 @@
  *
  */
 metadata {
-	definition (name: "Honeywell T6 Pro Z-Wave Thermostat", namespace: "prjct92eh2", author: "prjct92eh2") {
+	definition (name: "Honeywell T6 Pro", namespace: "prjct92eh2", author: "prjct92eh2") {
 		capability "Actuator"
 		capability "Temperature Measurement"
         capability "Relative Humidity Measurement"
