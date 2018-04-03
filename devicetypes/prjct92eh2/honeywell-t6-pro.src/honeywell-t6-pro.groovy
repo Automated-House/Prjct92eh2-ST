@@ -31,9 +31,9 @@ metadata {
 		command "raiseCoolSetpoint"
 		command "poll"
 
-		fingerprint deviceId: "0x08"
-		fingerprint inClusters: "0x43,0x40,0x44,0x31"
-		fingerprint mfr:"0039", prod:"0011", model:"0001", deviceJoinName: "Honeywell Z-Wave Thermostat"
+		//fingerprint deviceId: "0x08"
+		//fingerprint inClusters: "0x43,0x40,0x44,0x31"
+		//fingerprint mfr:"0039", prod:"0011", model:"0001", deviceJoinName: "Honeywell Z-Wave Thermostat"
         	fingerprint mfr:"0039", prod:"0011", model:"0008", deviceJoinName: "Honeywell T6 Pro Z-Wave Thermostat"//Added by prjct92eh2
 	}
 
