@@ -17,9 +17,9 @@ metadata {
 	capability "Configuration"
   	capability "Sensor"//JH
 	capability "Contact Sensor"
-    capability "Refresh"
+    	capability "Refresh"
 	capability "Battery"
-    capability "Health Check"//JH
+    	capability "Health Check"//JH
 
 	attribute "batteryReportType", "string"
 		
