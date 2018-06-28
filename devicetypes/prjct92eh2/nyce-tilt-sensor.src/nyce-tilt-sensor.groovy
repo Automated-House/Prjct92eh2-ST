@@ -43,6 +43,7 @@ tiles(scale: 2) {
 			}
 			tileAttribute("device.batteryReportType", key: "SECONDARY_CONTROL") {
     			attributeState("default", label:'Battery: ${currentValue}',icon: "st.Health & Wellness.health9")
+			}
 		}
 
 		valueTile("battery", "device.battery", decoration: "flat", inactiveLabel: false, width: 2, height: 2) {
