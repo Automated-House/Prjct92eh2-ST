@@ -41,6 +41,8 @@ tiles(scale: 2) {
 				attributeState("open", label: '${name}', icon: "st.contact.contact.open", backgroundColor: "#e86d13")
 				attributeState("closed", label: '${name}', icon: "st.contact.contact.closed", backgroundColor: "#00A0DC")
 			}
+			tileAttribute("device.batteryReportType", key: "SECONDARY_CONTROL") {
+    			attributeState("default", label:'Battery: ${currentValue}',icon: "st.Health & Wellness.health9")
 		}
 
 		valueTile("battery", "device.battery", decoration: "flat", inactiveLabel: false, width: 2, height: 2) {
