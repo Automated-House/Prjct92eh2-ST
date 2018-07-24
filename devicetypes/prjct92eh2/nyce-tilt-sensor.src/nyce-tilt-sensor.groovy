@@ -13,13 +13,13 @@
 //JH modified to add device health
 
 metadata {
-	definition (name: "NYCE Tilt Sensor", namespace: "prjct92eh2", author: "prjct92eh2") {
+	definition (name: "NYCE Tilt Sensor", namespace: "prjct92eh2", author: "prjct92eh2", mnmn: "SmartThings", vid: "generic-contact-3") {
 	capability "Configuration"
   	capability "Sensor"//JH
 	capability "Contact Sensor"
-    	capability "Refresh"
+    capability "Refresh"
 	capability "Battery"
-    	capability "Health Check"//JH
+    capability "Health Check"//JH
 
 	attribute "batteryReportType", "string"
 		
@@ -38,11 +38,11 @@ metadata {
 tiles(scale: 2) {
 		multiAttributeTile(name:"contact", type: "generic", width: 6, height: 4){
 			tileAttribute ("device.contact", key: "PRIMARY_CONTROL") {
-				attributeState("open", label: '${name}', icon: "st.contact.contact.open", backgroundColor: "#e86d13")
-				attributeState("closed", label: '${name}', icon: "st.contact.contact.closed", backgroundColor: "#00A0DC")
+				attributeState("open", label: '${name}', icon: "st.doors.garage.garage-open", backgroundColor: "#e86d13")
+				attributeState("closed", label: '${name}', icon: "st.doors.garage.garage-closed", backgroundColor: "#00A0DC")
 			}
-			tileAttribute("device.batteryReportType", key: "SECONDARY_CONTROL") {
-    			attributeState("default", label:'Battery: ${currentValue}',icon: "st.Health & Wellness.health9")
+			tileAttribute("device.battery", key: "SECONDARY_CONTROL") {
+    			attributeState("battery", label:'${currentValue}%', icon: "st.nest.nest-leaf")
 			}
 		}
 
