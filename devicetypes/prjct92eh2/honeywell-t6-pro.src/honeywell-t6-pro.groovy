@@ -12,10 +12,10 @@
  *
  */
 metadata {
-	definition (name: "Honeywell T6 Pro", namespace: "prjct92eh2", author: "prjct92eh2") {
+	definition (name: "Honeywell T6 Pro", namespace: "prjct92eh2", author: "prjct92eh2", mnmn:"SmartThings", vid: "SmartThings-smartthings-Z-Wave_Thermostat") {
 		capability "Actuator"
 		capability "Temperature Measurement"
-        	capability "Relative Humidity Measurement"
+        capability "Relative Humidity Measurement"
 		capability "Thermostat"
 		capability "Refresh"
 		capability "Sensor"
