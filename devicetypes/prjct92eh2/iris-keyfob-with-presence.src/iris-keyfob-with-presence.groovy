@@ -51,21 +51,21 @@ metadata {
         }
     }
 
-    tiles {
-        standardTile("presence", "device.presence", width: 2, height: 2, canChangeIcon: true) {
+    tiles(scale: 2) {
+        standardTile("presence", "device.presence", width: 6, height: 4, canChangeIcon: true) {
             state "present", label: "Present", labelIcon:"st.presence.tile.present", backgroundColor:"#53a7c0"
             state "not present", labelIcon:"st.presence.tile.not-present", backgroundColor:"#ffffff"
         }//JH
-        standardTile("button", "device.button") {
+        standardTile("button", "device.button", width: 2, height: 2) {
             state "default", label: "", icon: "st.unknown.zwave.remote-controller", backgroundColor: "#ffffff"
             state "button 1 pushed", label: "pushed #1", icon: "st.unknown.zwave.remote-controller", backgroundColor: "#00A0DC"
         }
 
-        valueTile("battery", "device.battery", decoration: "flat", inactiveLabel: false) {
+        valueTile("battery", "device.battery", width: 2, height: 2, decoration: "flat", inactiveLabel: false) {
             state "battery", label:'${currentValue}% battery', unit:""
         }
 
-        standardTile("refresh", "device.refresh", inactiveLabel: false, decoration: "flat") {
+        standardTile("refresh", "device.refresh", width: 2, height: 2, inactiveLabel: false, decoration: "flat") {
             state "default", action:"refresh.refresh", icon:"st.secondary.refresh"
         }
         main (["presence"])
