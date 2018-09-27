@@ -52,11 +52,11 @@ metadata {
     }
 
     tiles {
-        standardTile("presence", "device.presence", width: 4, height: 4, canChangeBackground: true) {
+        standardTile("presence", "device.presence", width: 2, height: 2, canChangeIcon: true) {
             state "present", label: "Present", labelIcon:"st.presence.tile.present", backgroundColor:"#53a7c0"
             state "not present", labelIcon:"st.presence.tile.not-present", backgroundColor:"#ffffff"
         }//JH
-        standardTile("button", "device.button", width: 2, height: 2) {
+        standardTile("button", "device.button") {
             state "default", label: "", icon: "st.unknown.zwave.remote-controller", backgroundColor: "#ffffff"
             state "button 1 pushed", label: "pushed #1", icon: "st.unknown.zwave.remote-controller", backgroundColor: "#00A0DC"
         }
