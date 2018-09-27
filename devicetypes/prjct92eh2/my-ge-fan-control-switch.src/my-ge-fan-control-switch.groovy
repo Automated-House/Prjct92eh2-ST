@@ -25,7 +25,7 @@
  */
  
 metadata {
-	definition (name: "My GE Fan Control Switch", namespace: "prjct92eh2", author: "prjct92eh2", mnmn: "SmartThings", vid: "generic-dimmer") {
+	definition (name: "My GE Fan Control Switch", namespace: "prjct92eh2", author: "prjct92eh2", ocfDeviceType: "oic.d.switch", mnmn: "SmartThings", vid: "generic-dimmer") {
 		capability "Switch Level"
 		capability "Actuator"
 		capability "Indicator"
