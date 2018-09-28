@@ -76,7 +76,8 @@ metadata {
 def parse(String description) {
     log.debug "description is $description"
     def event = zigbee.getEvent(description)
-    handlePresenceEvent(true)
+    state.lastCheckin = now()//JH
+    handlePresenceEvent(true)//JH
     if (event) {
         sendEvent(event)
     }
