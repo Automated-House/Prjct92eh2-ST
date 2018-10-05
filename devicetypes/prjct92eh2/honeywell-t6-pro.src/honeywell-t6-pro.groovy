@@ -20,6 +20,11 @@ metadata {
 		capability "Refresh"
 		capability "Sensor"
 		capability "Health Check"
+        capability "Thermostat Heating Setpoint"
+        capability "Thermostat Cooling Setpoint"
+        capability "Thermostat Operating State"
+        capability "Thermostat Mode"
+        capability "Thermostat Fan Mode"
 		
 		attribute "thermostatFanState", "string"
 
