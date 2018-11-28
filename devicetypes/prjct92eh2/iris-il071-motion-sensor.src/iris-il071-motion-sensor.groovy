@@ -17,7 +17,7 @@ import physicalgraph.zigbee.clusters.iaszone.ZoneStatus
 import physicalgraph.zigbee.zcl.DataType
 
 metadata {
-	definition(name: "Iris IL071 Motion Sensor", namespace: "prjct92eh2", author: "prjct92eh2", mnmn: "SmartThings", vid: "generic-motion") {
+	definition(name: "Iris IL071 Motion Sensor", namespace: "prjct92eh2", author: "prjct92eh2", mnmn: "SmartThings", vid: "generic-motion-6") {
 		capability "Motion Sensor"
 		capability "Configuration"
 		capability "Battery"
@@ -198,26 +198,6 @@ private Map getBatteryResult(rawValue) {
 		result.name = 'battery'
 		result.translatable = true
 		result.descriptionText = "{{ device.displayName }} battery was {{ value }}%"
-		if (device.getDataValue("manufacturer") == "SmartThings") {
-			volts = rawValue // For the batteryMap to work the key needs to be an int
-			def batteryMap = [28: 100, 27: 100, 26: 100, 25: 90, 24: 90, 23: 70,
-							  22: 70, 21: 50, 20: 50, 19: 30, 18: 30, 17: 15, 16: 1, 15: 0]
-			def minVolts = 15
-			def maxVolts = 28
-
-			if (volts < minVolts)
-				volts = minVolts
-			else if (volts > maxVolts)
-				volts = maxVolts
-			def pct = batteryMap[volts]
-			result.value = pct
-		} else if (device.getDataValue("manufacturer") == "Bosch") {
-			def minValue = 21
-			def maxValue = 30
-			def pct = Math.round((rawValue - minValue) * 100 / (maxValue - minValue))
-			pct = pct > 0 ? pct : 1
-			result.value = Math.min(100, pct)
-		} else { // Centralite
 			def useOldBatt = shouldUseOldBatteryReporting()
 			def minVolts = useOldBatt ? 2.1 : 2.4
 			def maxVolts = useOldBatt ? 3.0 : 2.7
@@ -243,7 +223,6 @@ private Map getBatteryResult(rawValue) {
 				result.value = device.currentState("battery").value
 			}
 			state.lastVolts = volts
-		}
 	}
 
 	return result
@@ -287,7 +266,7 @@ def refresh() {
 
 
 	refreshCmds += zigbee.readAttribute(zigbee.POWER_CONFIGURATION_CLUSTER, 0x0020) +
-		zigbee.readAttribute(0x0405, 0x0000, [destEndpoint: 0x02])
+		zigbee.readAttribute(0x0405, 0x0000)
         zigbee.readAttribute(zigbee.TEMPERATURE_MEASUREMENT_CLUSTER, 0x0000) +
 		zigbee.readAttribute(zigbee.IAS_ZONE_CLUSTER, zigbee.ATTRIBUTE_IAS_ZONE_STATUS) +
 		zigbee.enrollResponse()
@@ -309,15 +288,12 @@ def configure() {
 	configCmds += zigbee.enrollResponse()
 	// temperature minReportTime 30 seconds, maxReportTime 5 min. Reporting interval if no activity
 	// battery minReport 30 seconds, maxReportTime 6 hrs by default
-	if (device.getDataValue("manufacturer") == "Samjin") {
-		configCmds += zigbee.configureReporting(zigbee.POWER_CONFIGURATION_CLUSTER, 0x0021, DataType.UINT8, 30, 21600, 0x10)
-	} else {
-		configCmds += zigbee.batteryConfig()
-	}
+    // humidity minReportTime 30 seconds, maxReportTime 60 min
+	configCmds += zigbee.batteryConfig()
 	configCmds += zigbee.temperatureConfig(30, 300)
 	configCmds += zigbee.readAttribute(zigbee.IAS_ZONE_CLUSTER, zigbee.ATTRIBUTE_IAS_ZONE_STATUS)
 	configCmds += zigbee.readAttribute(zigbee.POWER_CONFIGURATION_CLUSTER, batteryAttr)
-    configCmds += zigbee.configureReporting(0x0405, 0x0000, DataType.UINT16, 30, 3600, 100, [destEndpoint: 0x02])
+    configCmds += zigbee.configureReporting(0x0405, 0x0000, DataType.UINT16, 30, 3600)
 
 	return configCmds
 }
