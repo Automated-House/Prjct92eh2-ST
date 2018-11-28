@@ -39,7 +39,10 @@ metadata {
 		//fingerprint deviceId: "0x08"
 		//fingerprint inClusters: "0x43,0x40,0x44,0x31"
 		//fingerprint mfr:"0039", prod:"0011", model:"0001", deviceJoinName: "Honeywell Z-Wave Thermostat"
-        	fingerprint mfr:"0039", prod:"0011", model:"0008", deviceJoinName: "Honeywell T6 Pro Z-Wave Thermostat"//Added by prjct92eh2
+		//fingerprint mfr:"008B", prod:"5452", model:"5439", deviceJoinName: "Trane Thermostat"
+		//fingerprint mfr:"008B", prod:"5452", model:"5442", deviceJoinName: "Trane Thermostat"
+		//fingerprint mfr:"008B", prod:"5452", model:"5443", deviceJoinName: "American Standard Thermostat"
+        fingerprint mfr:"0039", prod:"0011", model:"0008", deviceJoinName: "Honeywell T6 Pro Z-Wave Thermostat"//Added by prjct92eh2
 	}
 
 	tiles {
@@ -145,9 +148,10 @@ def initialize() {
 	// Device-Watch simply pings if no device events received for 32min(checkInterval)
 	sendEvent(name: "checkInterval", value: 2 * 15 * 60 + 2 * 60, displayed: false, data: [protocol: "zwave", hubHardwareId: device.hub.hardwareID])
 	unschedule()
-	//if (getDataValue("manufacturer") != "Honeywell") { removed by prjct92eh2 since T6 is not updating setpoints
-		runEvery5Minutes("poll")  // This is not necessary for Honeywell Z-wave, but could be for other Z-wave thermostats
-	//}
+    //Honeywell T6 Pro needs to be polled to bring in updated setpoints
+	if ((getDataValue("manufacturer") != "Honeywell") && (getDataValue("model") != "0008")) { 
+		runEvery5Minutes("poll")  // This is not necessary for non-T6 Honeywell Z-wave, but could be for other Z-wave thermostats
+	}
 	pollDevice()
 }
 
@@ -474,7 +478,7 @@ def updateSetpoints() {
 		coolingSetpoint = data.targetCoolingSetpoint ? getTempInLocalScale(data.targetCoolingSetpoint, deviceScale) : coolingSetpoint
 		data = enforceSetpointLimits("coolingSetpoint", [targetValue: state.coolingSetpoint,
 				heatingSetpoint: heatingSetpoint, coolingSetpoint: coolingSetpoint])
-		data.targetHeatingSetpoint = data.targetHeatingSetpoint ?: heatingSetpoint
+		data.targetHeatingSetpoint = data.targetHeatingSetpoint ?: getTempInDeviceScale(heatingSetpoint, getTemperatureScale())
 	}
 	state.heatingSetpoint = null
 	state.coolingSetpoint = null
