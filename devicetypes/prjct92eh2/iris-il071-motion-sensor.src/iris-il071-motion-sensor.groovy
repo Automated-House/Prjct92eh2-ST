@@ -28,9 +28,14 @@ metadata {
 		capability "Sensor"
 
 		command "enrollResponse"
-
 		
-        fingerprint inClusters: "0000,0001,0003,0020,0402,0405,0500,0B05", outClusters: "0019,0003", manufacturer: "iMagic by GreatStar", model: "1117-S", deviceJoinName: "Iris Motion Sensor"	
+        //Device join data
+		//application: 00
+		//endpointId: 01
+		//manufacturer: iMagic by GreatStar
+		//model: 1117-S
+        //Raw 01 0104 0402 00 0A 0000 0001 0003 0020 0402 0405 0500 0B05 FC01 FC02 02 0003 0019
+        fingerprint inClusters: "0000,0001,0003,0020,0402,0405,0500,0B05", outClusters: "0019,0003", manufacturer: "iMagic by GreatStar", model: "1117-S", deviceJoinName: "Iris IL071 Motion Sensor"	
 	}
 
 	simulator {
