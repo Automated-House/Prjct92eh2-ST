@@ -90,9 +90,12 @@ metadata {
 		standardTile("refresh", "device.refresh", inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
 			state "default", action: "refresh.refresh", icon: "st.secondary.refresh"
 		}
+        standardTile("configure", "device.configure", inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
+			state "configure", label:'', action:"configuration.configure", icon:"st.secondary.configure"
+        }
 
 		main(["motion", "temperature"])
-		details(["motion", "temperature", "humidity", "battery", "refresh"])
+		details(["motion", "temperature", "humidity", "battery", "refresh", "configure"])
 	}
 }
 
@@ -293,7 +296,7 @@ def configure() {
 	configCmds += zigbee.temperatureConfig(30, 300)
 	configCmds += zigbee.readAttribute(zigbee.IAS_ZONE_CLUSTER, zigbee.ATTRIBUTE_IAS_ZONE_STATUS)
 	configCmds += zigbee.readAttribute(zigbee.POWER_CONFIGURATION_CLUSTER, batteryAttr)
-    configCmds += zigbee.configureReporting(0x0405, 0x0000, DataType.UINT16, 30, 3600)
+    configCmds += zigbee.configureReporting(0x0405, 0x0000, DataType.UINT16, 30, 3600,100)
 
 	return configCmds
 }
