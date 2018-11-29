@@ -81,7 +81,7 @@ metadata {
 					]
 			)
 		}
-        valueTile("humidity", "device.humidity", inactiveLabel: false, width: 2, height: 2) {
+        valueTile("humidity", "device.humidity", decoration: "flat", inactiveLabel: false, width: 2, height: 2) {
 			state "humidity", label: '${currentValue}% humidity', unit: ""
 		}
 		valueTile("battery", "device.battery", decoration: "flat", inactiveLabel: false, width: 2, height: 2) {
