@@ -145,13 +145,13 @@ def updated() {
 }
 
 def initialize() {
-	// Device-Watch simply pings if no device events received for 32min(checkInterval)
+	log.debug "Initializing the thermostat"
+    // Device-Watch simply pings if no device events received for 32min(checkInterval)
 	sendEvent(name: "checkInterval", value: 2 * 15 * 60 + 2 * 60, displayed: false, data: [protocol: "zwave", hubHardwareId: device.hub.hardwareID])
 	unschedule()
     //Honeywell T6 Pro needs to be polled to bring in updated setpoints
-	if ((getDataValue("manufacturer") != "Honeywell") && (getDataValue("model") != "0008")) { 
-		runEvery5Minutes("poll")  // This is not necessary for non-T6 Honeywell Z-wave, but could be for other Z-wave thermostats
-	}
+	log.debug "Scheduling poll every 5 minutes"
+    runEvery5Minutes("poll")  // This is not necessary for non-T6 Honeywell Z-wave, but could be for other Z-wave thermostats
 	pollDevice()
 }
 
@@ -344,7 +344,8 @@ def zwaveEvent(physicalgraph.zwave.Command cmd) {
 // Command Implementations
 def poll() {
 	// Call refresh which will cap the polling to once every 2 minutes
-	refresh()
+	log.debug "Polling thermostat for updates"
+    refresh()
 }
 
 def refresh() {
