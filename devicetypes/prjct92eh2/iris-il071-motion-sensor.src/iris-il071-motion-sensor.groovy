@@ -29,7 +29,7 @@ metadata {
 
 		command "enrollResponse"
 		
-        fingerprint inClusters: "0000,0001,0003,0020,0402,0405,0500,0B05", outClusters: "0019,0003", manufacturer: "iMagic by GreatStar", model: "1117-S", deviceJoinName: "Iris IL071 Motion Sensor"	
+		fingerprint inClusters: "0000,0001,0003,0020,0402,0405,0500,0B05", outClusters: "0019,0003", manufacturer: "iMagic by GreatStar", model: "1117-S", deviceJoinName: "Iris IL071 Motion Sensor"	
 	}
 
 	simulator {
@@ -49,11 +49,11 @@ metadata {
 			input title: "Temperature Offset", description: "This feature allows you to correct any temperature variations by selecting an offset. Ex: If your sensor consistently reports a temp that's 5 degrees too warm, you'd enter '-5'. If 3 degrees too cold, enter '+3'.", displayDuringSetup: false, type: "paragraph", element: "paragraph"
 			input "tempOffset", "number", title: "Degrees", description: "Adjust temperature by this many degrees", range: "*..*", displayDuringSetup: false
 		}
-        section {
-        	input title: "Humidity Offset", description: "This feature allows you to correct any humidity variations by selecting an offset. Ex: If your sensor consistently reports a humidity that's 6% higher then a similiar calibrated sensor, you'd enter \"-6\".", displayDuringSetup: false, type: "paragraph", element: "paragraph"
+		section {
+			input title: "Humidity Offset", description: "This feature allows you to correct any humidity variations by selecting an offset. Ex: If your sensor consistently reports a humidity that's 6% higher then a similiar calibrated sensor, you'd enter \"-6\".", displayDuringSetup: false, type: "paragraph", element: "paragraph"
 			input "humidityOffset", "number", title: "Humidity Offset in Percent", description: "Adjust humidity by this percentage", range: "*..*", displayDuringSetup: false
 		}
-    }
+	}
 
 	tiles(scale: 2) {
 		multiAttributeTile(name: "motion", type: "generic", width: 6, height: 4) {
@@ -84,9 +84,9 @@ metadata {
 		standardTile("refresh", "device.refresh", inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
 			state "default", action: "refresh.refresh", icon: "st.secondary.refresh"
 		}
-        standardTile("configure", "device.configure", inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
+		standardTile("configure", "device.configure", inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
 			state "configure", label:'', action:"configuration.configure", icon:"st.secondary.configure"
-        }
+		}
 
 		main(["motion", "temperature"])
 		details(["motion", "temperature", "humidity", "battery", "refresh", "configure"])
@@ -159,7 +159,7 @@ def parse(String description) {
 		if (humidityOffset) {
 			map.value = (int) map.value + (int) humidityOffset
 		}
-    }
+	}
 
 	log.debug "Parse returned $map"
 	def result = map ? createEvent(map) : [:]
@@ -195,9 +195,8 @@ private Map getBatteryResult(rawValue) {
 		result.name = 'battery'
 		result.translatable = true
 		result.descriptionText = "{{ device.displayName }} battery was {{ value }}%"
-			def useOldBatt = shouldUseOldBatteryReporting()
-			def minVolts = useOldBatt ? 2.1 : 2.4
-			def maxVolts = useOldBatt ? 3.0 : 2.7
+			def minVolts = 2.4
+			def maxVolts = 2.7
 			// Get the current battery percentage as a multiplier 0 - 1
 			def curValVolts = Integer.parseInt(device.currentState("battery")?.value ?: "100") / 100.0
 			// Find the corresponding voltage from our range
@@ -208,8 +207,7 @@ private Map getBatteryResult(rawValue) {
 			// OR we have received the same reading twice in a row
 			// OR we don't currently have a battery reading
 			// OR the value we just received is at least 2 steps off from the last reported value
-			// OR the device's firmware is older than 1.15.7
-			if (useOldBatt || state?.lastVolts == null || state?.lastVolts == volts || device.currentState("battery")?.value == null || Math.abs(curValVolts - volts) > 0.1) {
+			if (state?.lastVolts == null || state?.lastVolts == volts || device.currentState("battery")?.value == null || Math.abs(curValVolts - volts) > 0.1) {
 				def pct = (volts - minVolts) / (maxVolts - minVolts)
 				def roundedPct = Math.round(pct * 100)
 				if (roundedPct <= 0)
@@ -263,10 +261,10 @@ def refresh() {
 
 
 	refreshCmds += zigbee.readAttribute(zigbee.POWER_CONFIGURATION_CLUSTER, 0x0020) +
-		zigbee.readAttribute(0x0405, 0x0000)
-        zigbee.readAttribute(zigbee.TEMPERATURE_MEASUREMENT_CLUSTER, 0x0000) +
-		zigbee.readAttribute(zigbee.IAS_ZONE_CLUSTER, zigbee.ATTRIBUTE_IAS_ZONE_STATUS) +
-		zigbee.enrollResponse()
+	zigbee.readAttribute(zigbee.TEMPERATURE_MEASUREMENT_CLUSTER, 0x0000) +
+	zigbee.readAttribute(0x0405, 0x0000)
+	zigbee.readAttribute(zigbee.IAS_ZONE_CLUSTER, zigbee.ATTRIBUTE_IAS_ZONE_STATUS) +
+	zigbee.enrollResponse()
 
 	return refreshCmds
 }
@@ -277,39 +275,14 @@ def configure() {
 	sendEvent(name: "checkInterval", value: 2 * 60 * 60 + 1 * 60, displayed: false, data: [protocol: "zigbee", hubHardwareId: device.hub.hardwareID, offlinePingable: "1"])
 
 	log.debug "Configuring Reporting"
-	def configCmds = [zigbee.readAttribute(zigbee.TEMPERATURE_MEASUREMENT_CLUSTER, 0x0000)]
-	def batteryAttr = device.getDataValue("manufacturer") == "Samjin" ? 0x0021 : 0x0020
+	def configCmds = []
 
-	configCmds += zigbee.readAttribute(zigbee.POWER_CONFIGURATION_CLUSTER, batteryAttr)
-
-	configCmds += zigbee.enrollResponse()
-	// temperature minReportTime 30 seconds, maxReportTime 5 min. Reporting interval if no activity
 	// battery minReport 30 seconds, maxReportTime 6 hrs by default
-    // humidity minReportTime 30 seconds, maxReportTime 60 min
-	configCmds += zigbee.batteryConfig()
-	configCmds += zigbee.temperatureConfig(30, 300)
-	configCmds += zigbee.readAttribute(zigbee.IAS_ZONE_CLUSTER, zigbee.ATTRIBUTE_IAS_ZONE_STATUS)
-	configCmds += zigbee.readAttribute(zigbee.POWER_CONFIGURATION_CLUSTER, batteryAttr)
-    configCmds += zigbee.configureReporting(0x0405, 0x0000, DataType.UINT16, 30, 3600,100)
+	// temperature minReportTime 30 seconds, maxReportTime 5 min. Reporting interval if no activity
+	// humidity minReportTime 30 seconds, maxReportTime 60 min
+	configCmds += zigbee.batteryConfig() +
+	zigbee.temperatureConfig(30, 300) +
+	zigbee.configureReporting(0x0405, 0x0000, DataType.UINT16, 30, 3600,100)
 
-	return configCmds
-}
-
-private shouldUseOldBatteryReporting() {
-	def isFwVersionLess = true // By default use the old battery reporting
-	def deviceFwVer = "${device.getFirmwareVersion()}"
-	def deviceVersion = deviceFwVer.tokenize('.')  // We expect the format ###.###.### where ### is some integer
-
-	if (deviceVersion.size() == 3) {
-		def targetVersion = [1, 15, 7] // Centralite Firmware 1.15.7 contains battery smoothing fixes, so versions before that should NOT be smoothed
-		def devMajor = deviceVersion[0] as int
-		def devMinor = deviceVersion[1] as int
-		def devBuild = deviceVersion[2] as int
-
-		isFwVersionLess = ((devMajor < targetVersion[0]) ||
-			(devMajor == targetVersion[0] && devMinor < targetVersion[1]) ||
-			(devMajor == targetVersion[0] && devMinor == targetVersion[1] && devBuild < targetVersion[2]))
-	}
-
-	return isFwVersionLess // If f/w version is less than 1.15.7 then do NOT smooth battery reports and use the old reporting
+	return configCmds + refresh()
 }
