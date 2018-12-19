@@ -1,5 +1,5 @@
 /*
- *  Copyright 2016 SmartThings
+ *  Copyright 2018 SmartThings
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
  *  use this file except in compliance with the License. You may obtain a copy
@@ -22,14 +22,14 @@ metadata {
 		capability "Configuration"
 		capability "Battery"
 		capability "Temperature Measurement"
-        capability "Relative Humidity Measurement"
+		capability "Relative Humidity Measurement"
 		capability "Refresh"
 		capability "Health Check"
 		capability "Sensor"
 
 		command "enrollResponse"
 		
-		fingerprint inClusters: "0000,0001,0003,0020,0402,0405,0500,0B05", outClusters: "0019,0003", manufacturer: "iMagic by GreatStar", model: "1117-S", deviceJoinName: "Iris IL071 Motion Sensor"	
+		fingerprint inClusters: "0000,0001,0003,0020,0402,0405,0500,0B05,FC01,FC02", outClusters: "0019,0003", manufacturer: "iMagic by GreatStar", model: "1117-S", deviceJoinName: "Iris IL071 Motion Sensor"	
 	}
 
 	simulator {
@@ -40,9 +40,9 @@ metadata {
 	preferences {
 		section {
 			image(name: 'educationalcontent', multiple: true, images: [
-					"http://cdn.device-gse.smartthings.com/Motion/Motion1.jpg",
-					"http://cdn.device-gse.smartthings.com/Motion/Motion2.jpg",
-					"http://cdn.device-gse.smartthings.com/Motion/Motion3.jpg"
+				"http://cdn.device-gse.smartthings.com/Motion/Motion1.jpg",
+				"http://cdn.device-gse.smartthings.com/Motion/Motion2.jpg",
+				"http://cdn.device-gse.smartthings.com/Motion/Motion3.jpg"
 			])
 		}
 		section {
@@ -75,7 +75,7 @@ metadata {
 					]
 			)
 		}
-        valueTile("humidity", "device.humidity", decoration: "flat", inactiveLabel: false, width: 2, height: 2) {
+		valueTile("humidity", "device.humidity", decoration: "flat", inactiveLabel: false, width: 2, height: 2) {
 			state "humidity", label: '${currentValue}% humidity', unit: ""
 		}
 		valueTile("battery", "device.battery", decoration: "flat", inactiveLabel: false, width: 2, height: 2) {
@@ -117,19 +117,10 @@ def parse(String description) {
 			if (descMap?.clusterInt == zigbee.POWER_CONFIGURATION_CLUSTER && descMap.commandInt != 0x07 && descMap.value) {
 				log.info "BATT METRICS - attr: ${descMap?.attrInt}, value: ${descMap?.value}, decValue: ${Integer.parseInt(descMap.value, 16)}, currPercent: ${device.currentState("battery")?.value}, device: ${device.getDataValue("manufacturer")} ${device.getDataValue("model")}"
 				List<Map> descMaps = collectAttributes(descMap)
+				def battMap = descMaps.find { it.attrInt == 0x0020 }
 
-				if (device.getDataValue("manufacturer") == "Samjin") {
-					def battMap = descMaps.find { it.attrInt == 0x0021 }
-
-					if (battMap) {
-						map = getBatteryPercentageResult(Integer.parseInt(battMap.value, 16))
-					}
-				} else {
-					def battMap = descMaps.find { it.attrInt == 0x0020 }
-
-					if (battMap) {
-						map = getBatteryResult(Integer.parseInt(battMap.value, 16))
-					}
+				if (battMap) {
+					map = getBatteryResult(Integer.parseInt(battMap.value, 16))
 				}
 			} else if (descMap?.clusterInt == 0x0500 && descMap.attrInt == 0x0002) {
 				def zs = new ZoneStatus(zigbee.convertToInt(descMap.value, 16))
@@ -153,12 +144,13 @@ def parse(String description) {
 		if (tempOffset) {
 			map.value = (int) map.value + (int) tempOffset
 		}
-		map.descriptionText = temperatureScale == 'C' ? '${device.displayName} temperature was ${map.value}°C' : '${device.displayName} temperature was ${map.value}°F'
+		map.descriptionText = temperatureScale == 'C' ? "${device.displayName} temperature was ${map.value}°C" : "${device.displayName} temperature was ${map.value}°F"
 		map.translatable = true
 	} else if (map.name == "humidity") {
 		if (humidityOffset) {
 			map.value = (int) map.value + (int) humidityOffset
 		}
+		map.descriptionText = "${device.displayName} humidity was ${map.value}%"
 	}
 
 	log.debug "Parse returned $map"
@@ -194,30 +186,30 @@ private Map getBatteryResult(rawValue) {
 	if (!(rawValue == 0 || rawValue == 255)) {
 		result.name = 'battery'
 		result.translatable = true
-		result.descriptionText = "{{ device.displayName }} battery was {{ value }}%"
-			def minVolts = 2.4
-			def maxVolts = 2.7
-			// Get the current battery percentage as a multiplier 0 - 1
-			def curValVolts = Integer.parseInt(device.currentState("battery")?.value ?: "100") / 100.0
-			// Find the corresponding voltage from our range
-			curValVolts = curValVolts * (maxVolts - minVolts) + minVolts
-			// Round to the nearest 10th of a volt
-			curValVolts = Math.round(10 * curValVolts) / 10.0
-			// Only update the battery reading if we don't have a last reading,
-			// OR we have received the same reading twice in a row
-			// OR we don't currently have a battery reading
-			// OR the value we just received is at least 2 steps off from the last reported value
-			if (state?.lastVolts == null || state?.lastVolts == volts || device.currentState("battery")?.value == null || Math.abs(curValVolts - volts) > 0.1) {
-				def pct = (volts - minVolts) / (maxVolts - minVolts)
-				def roundedPct = Math.round(pct * 100)
-				if (roundedPct <= 0)
-					roundedPct = 1
-				result.value = Math.min(100, roundedPct)
-			} else {
-				// Don't update as we want to smooth the battery values, but do report the last battery state for record keeping purposes
-				result.value = device.currentState("battery").value
-			}
-			state.lastVolts = volts
+		def minVolts =  2.4
+		def maxVolts =  2.7
+		// Get the current battery percentage as a multiplier 0 - 1
+		def curValVolts = Integer.parseInt(device.currentState("battery")?.value ?: "100") / 100.0
+		// Find the corresponding voltage from our range
+		curValVolts = curValVolts * (maxVolts - minVolts) + minVolts
+		// Round to the nearest 10th of a volt
+		curValVolts = Math.round(10 * curValVolts) / 10.0
+		// Only update the battery reading if we don't have a last reading,
+		// OR we have received the same reading twice in a row
+		// OR we don't currently have a battery reading
+		// OR the value we just received is at least 2 steps off from the last reported value
+		if (state?.lastVolts == null || state?.lastVolts == volts || device.currentState("battery")?.value == null || Math.abs(curValVolts - volts) > 0.1) {
+			def pct = (volts - minVolts) / (maxVolts - minVolts)
+			def roundedPct = Math.round(pct * 100)
+			if (roundedPct <= 0)
+				roundedPct = 1
+			result.value = Math.min(100, roundedPct)
+		} else {
+			// Don't update as we want to smooth the battery values, but do report the last battery state for record keeping purposes
+			result.value = device.currentState("battery").value
+		}
+		result.descriptionText = "${device.displayName} battery was ${result.value}%"
+		state.lastVolts = volts
 	}
 
 	return result
@@ -230,8 +222,8 @@ private Map getBatteryPercentageResult(rawValue) {
 	if (0 <= rawValue && rawValue <= 200) {
 		result.name = 'battery'
 		result.translatable = true
-		result.descriptionText = "{{ device.displayName }} battery was {{ value }}%"
 		result.value = Math.round(rawValue / 2)
+		result.descriptionText = "${device.displayName} battery was ${result.value}%"
 	}
 
 	return result
@@ -239,12 +231,12 @@ private Map getBatteryPercentageResult(rawValue) {
 
 private Map getMotionResult(value) {
 	log.debug 'motion'
-	String descriptionText = value == 'active' ? "{{ device.displayName }} detected motion" : "{{ device.displayName }} motion has stopped"
+	String descriptionText = value == 'active' ? "${device.displayName} detected motion" : "${device.displayName} motion has stopped"
 	return [
-			name           : 'motion',
-			value          : value,
-			descriptionText: descriptionText,
-			translatable   : true
+		name           : 'motion',
+		value          : value,
+		descriptionText: descriptionText,
+		translatable   : true
 	]
 }
 
@@ -259,12 +251,11 @@ def refresh() {
 	log.debug "Refreshing Values"
 	def refreshCmds = []
 
-
 	refreshCmds += zigbee.readAttribute(zigbee.POWER_CONFIGURATION_CLUSTER, 0x0020) +
-	zigbee.readAttribute(zigbee.TEMPERATURE_MEASUREMENT_CLUSTER, 0x0000) +
-	zigbee.readAttribute(0x0405, 0x0000)
-	zigbee.readAttribute(zigbee.IAS_ZONE_CLUSTER, zigbee.ATTRIBUTE_IAS_ZONE_STATUS) +
-	zigbee.enrollResponse()
+		zigbee.readAttribute(0x0405, 0x0000) +
+		zigbee.readAttribute(zigbee.TEMPERATURE_MEASUREMENT_CLUSTER, 0x0000) +
+		zigbee.readAttribute(zigbee.IAS_ZONE_CLUSTER, zigbee.ATTRIBUTE_IAS_ZONE_STATUS) +
+		zigbee.enrollResponse()
 
 	return refreshCmds
 }
@@ -275,14 +266,15 @@ def configure() {
 	sendEvent(name: "checkInterval", value: 2 * 60 * 60 + 1 * 60, displayed: false, data: [protocol: "zigbee", hubHardwareId: device.hub.hardwareID, offlinePingable: "1"])
 
 	log.debug "Configuring Reporting"
+	
+	// temperature minReportTime 30 seconds, maxReportTime 5 min. Reporting interval if no activity
+	// battery minReport 30 seconds, maxReportTime 6 hrs by default
+	// humidity minReportTime 30 seconds, maxReportTime 60 min
 	def configCmds = []
 
-	// battery minReport 30 seconds, maxReportTime 6 hrs by default
-	// temperature minReportTime 30 seconds, maxReportTime 5 min. Reporting interval if no activity
-	// humidity minReportTime 30 seconds, maxReportTime 60 min
 	configCmds += zigbee.batteryConfig() +
-	zigbee.temperatureConfig(30, 300) +
-	zigbee.configureReporting(0x0405, 0x0000, DataType.UINT16, 30, 3600,100)
+		zigbee.temperatureConfig(30, 300) +
+		zigbee.configureReporting(0x0405, 0x0000, DataType.UINT16, 30, 3600,100)
 
 	return configCmds + refresh()
 }
