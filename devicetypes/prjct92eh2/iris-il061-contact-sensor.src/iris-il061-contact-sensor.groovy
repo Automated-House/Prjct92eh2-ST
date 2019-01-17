@@ -14,6 +14,7 @@
  *
  */
 import physicalgraph.zigbee.clusters.iaszone.ZoneStatus
+import physicalgraph.zigbee.zcl.DataType
 
 metadata {
 	definition(name: "Iris IL061 Contact Sensor", namespace: "prjct92eh2", author: "prjct92eh2", mnmn: "SmartThings", vid: "generic-contact") {
@@ -22,6 +23,7 @@ metadata {
 		capability "Contact Sensor"
 		capability "Refresh"
 		capability "Temperature Measurement"
+        capability "Relative Humidity Measurement"
 		capability "Health Check"
 		capability "Sensor"
 
@@ -42,8 +44,21 @@ metadata {
 	}
 
 	preferences {
-		input title: "Temperature Offset", description: "This feature allows you to correct any temperature variations by selecting an offset. Ex: If your sensor consistently reports a temp that's 5 degrees too warm, you'd enter \"-5\". If 3 degrees too cold, enter \"+3\".", displayDuringSetup: false, type: "paragraph", element: "paragraph"
-		input "tempOffset", "number", title: "Degrees", description: "Adjust temperature by this many degrees", range: "*..*", displayDuringSetup: false
+			section {
+                image(name: 'educationalcontent', multiple: true, images: [
+					"http://cdn.device-gse.smartthings.com/Motion/Motion1.jpg",
+					"http://cdn.device-gse.smartthings.com/Motion/Motion2.jpg",
+					"http://cdn.device-gse.smartthings.com/Motion/Motion3.jpg"
+					])
+			}
+			section {
+				input title: "Temperature Offset", description: "This feature allows you to correct any temperature variations by selecting an offset. Ex: If your sensor consistently reports a temp that's 5 degrees too warm, you'd enter '-5'. If 3 degrees too cold, enter '+3'.", displayDuringSetup: false, type: "paragraph", element: "paragraph"
+				input "tempOffset", "number", title: "Degrees", description: "Adjust temperature by this many degrees", range: "*..*", displayDuringSetup: false
+			}
+			section {
+				input title: "Humidity Offset", description: "This feature allows you to correct any humidity variations by selecting an offset. Ex: If your sensor consistently reports a humidity that's 6% higher then a similiar calibrated sensor, you'd enter \"-6\".", displayDuringSetup: false, type: "paragraph", element: "paragraph"
+                input "humidityOffset", "number", title: "Humidity Offset in Percent", description: "Adjust humidity by this percentage", range: "*..*", displayDuringSetup: false
+		}
 	}
 
 	tiles(scale: 2) {
@@ -66,7 +81,10 @@ metadata {
 							[value: 96, color: "#bc2323"]
 					]
 		}
-		valueTile("battery", "device.battery", decoration: "flat", inactiveLabel: false, width: 2, height: 2) {
+		valueTile("humidity", "device.humidity", decoration: "flat", inactiveLabel: false, width: 2, height: 2) {
+			state "humidity", label: '${currentValue}% humidity', unit: ""
+		}
+        valueTile("battery", "device.battery", decoration: "flat", inactiveLabel: false, width: 2, height: 2) {
 			state "battery", label: '${currentValue}% battery', unit: ""
 		}
 
@@ -75,8 +93,20 @@ metadata {
 		}
 
 		main(["contact", "temperature"])
-		details(["contact", "temperature", "battery", "refresh"])
+		details(["contact", "temperature", "humidity", "battery", "refresh"])
 	}
+}
+
+private List<Map> collectAttributes(Map descMap) {
+	List<Map> descMaps = new ArrayList<Map>()
+
+	descMaps.add(descMap)
+
+	if (descMap.additionalAttrs) {
+		descMaps.addAll(descMap.additionalAttrs)
+	}
+
+	return  descMaps
 }
 
 def parse(String description) {
@@ -106,8 +136,13 @@ def parse(String description) {
 		if (tempOffset) {
 			map.value = (int) map.value + (int) tempOffset
 		}
-		map.descriptionText = temperatureScale == 'C' ? '{{ device.displayName }} was {{ value }}°C' : '{{ device.displayName }} was {{ value }}°F'
+		map.descriptionText = temperatureScale == 'C' ? "${device.displayName} temperature was ${map.value}°C" : "${device.displayName} temperature was ${map.value}°F"
 		map.translatable = true
+	} else if (map.name == "humidity") {
+		if (humidityOffset) {
+			map.value = (int) map.value + (int) humidityOffset
+		}
+		map.descriptionText = "${device.displayName} humidity was ${map.value}%"
 	}
 
 	log.debug "Parse returned $map"
@@ -142,7 +177,7 @@ private Map getBatteryResult(rawValue) {
 		if (roundedPct <= 0)
 			roundedPct = 1
 		result.value = Math.min(100, roundedPct)
-		result.descriptionText = "${linkText} battery was ${result.value}%"
+		result.descriptionText = "${device.displayName} battery was ${result.value}%"
 		result.name = 'battery'
 	}
 
@@ -169,9 +204,11 @@ def ping() {
 
 def refresh() {
 	//cmds += configure()
-    log.debug "Refreshing Temperature and Battery"
+    log.debug "Refreshing Temperature, Humidity and Battery"
 	def refreshCmds = zigbee.readAttribute(zigbee.TEMPERATURE_MEASUREMENT_CLUSTER, 0x0000) +
-			zigbee.readAttribute(zigbee.POWER_CONFIGURATION_CLUSTER, 0x0020)
+			zigbee.readAttribute(0x0405, 0x0000) +
+            zigbee.readAttribute(zigbee.POWER_CONFIGURATION_CLUSTER, 0x0020)
+            
 
 	return refreshCmds + zigbee.enrollResponse()
     
@@ -182,21 +219,11 @@ def configure() {
 	// enrolls with default periodic reporting until newer 5 min interval is confirmed
 	sendEvent(name: "checkInterval", value: 2 * 60 * 60 + 1 * 60, displayed: false, data: [protocol: "zigbee", hubHardwareId: device.hub.hardwareID, offlinePingable: "1"])
 
-	log.debug "Configuring Reporting, IAS CIE, and Bindings."
-	def cmds = refresh() + zigbee.iasZoneConfig(30, 60 * 5) + zigbee.batteryConfig() + zigbee.temperatureConfig(30, 60 * 30)
-	//if(getDataValue("manufacturer") == "Ecolink") {
-		//cmds += configureEcolink()
-	//}
-	// temperature minReportTime 30 seconds, maxReportTime 5 min. Reporting interval if no activity
+	// temperature minReportTime 30 seconds, maxReportTime 30 min. Reporting interval if no activity
 	// battery minReport 30 seconds, maxReportTime 6 hrs by default
+	log.debug "Configuring Reporting, IAS CIE, and Bindings."
+	def cmds = refresh() + zigbee.iasZoneConfig(30, 60 * 5) + zigbee.batteryConfig() + zigbee.temperatureConfig(30, 60 * 30) + zigbee.configureReporting(0x0405, 0x0000, DataType.UINT16, 30, 3600, 100)
+	
+	
 	return cmds
 }
-
-/*private configureEcolink() {
-	sendEvent(name: "checkInterval", value: 60 * 60, displayed: false, data: [protocol: "zigbee", hubHardwareId: device.hub.hardwareID])
-
-	def enrollCmds = zigbee.writeAttribute(0x0020, 0x0000, 0x23, 0x00001C20) + zigbee.command(0x0020, 0x03, "0200") +
-			zigbee.writeAttribute(0x0020, 0x0003, 0x21, 0x0028) + zigbee.command(0x0020, 0x02, "B1040000")
-
-	return zigbee.addBinding(0x0020) + refresh() + enrollCmds
-}*/
