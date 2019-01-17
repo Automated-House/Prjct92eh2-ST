@@ -23,20 +23,11 @@ metadata {
 		capability "Contact Sensor"
 		capability "Refresh"
 		capability "Temperature Measurement"
-        capability "Relative Humidity Measurement"
+		capability "Relative Humidity Measurement"
 		capability "Health Check"
 		capability "Sensor"
 
-		command "enrollResponse"
-
-
-		//fingerprint inClusters: "0000,0001,0003,0402,0500,0020,0B05", outClusters: "0019", manufacturer: "CentraLite", model: "3300-S"
-		//fingerprint inClusters: "0000,0001,0003,0402,0500,0020,0B05", outClusters: "0019", manufacturer: "CentraLite", model: "3300"
-		//fingerprint inClusters: "0000,0001,0003,0020,0402,0500,0B05", outClusters: "0019", manufacturer: "CentraLite", model: "3320-L", deviceJoinName: "Iris Contact Sensor"
-		//fingerprint inClusters: "0000,0001,0003,0020,0402,0500,0B05", outClusters: "0019", manufacturer: "CentraLite", model: "3323-G", deviceJoinName: "Centralite Micro Door Sensor"
-		//fingerprint inClusters: "0000,0001,0003,0402,0500,0020,0B05", outClusters: "0019", manufacturer: "Visonic", model: "MCT-340 E", deviceJoinName: "Visonic Door/Window Sensor"
-		//fingerprint inClusters: "0000,0001,0003,0020,0402,0500,0B05", outClusters: "0019", manufacturer: "Ecolink", model: "4655BC0-R", deviceJoinName: "Ecolink Door/Window Sensor"
-        fingerprint inClusters: "0000,0001,0003,0020,0402,0500,0B05,FC01,FC02", outClusters: "0003,0019", manufacturer: "iMagic by GreatStar", model: "1116-S", deviceJoinName: "Iris V3 Contact Sensor"
+		fingerprint inClusters: "0000,0001,0003,0020,0402,0500,0B05,FC01,FC02", outClusters: "0003,0019", manufacturer: "iMagic by GreatStar", model: "1116-S", deviceJoinName: "Iris V3 Contact Sensor"
 	}
 
 	simulator {
@@ -45,7 +36,7 @@ metadata {
 
 	preferences {
 			section {
-                image(name: 'educationalcontent', multiple: true, images: [
+				image(name: 'educationalcontent', multiple: true, images: [
 					"http://cdn.device-gse.smartthings.com/Motion/Motion1.jpg",
 					"http://cdn.device-gse.smartthings.com/Motion/Motion2.jpg",
 					"http://cdn.device-gse.smartthings.com/Motion/Motion3.jpg"
@@ -57,7 +48,7 @@ metadata {
 			}
 			section {
 				input title: "Humidity Offset", description: "This feature allows you to correct any humidity variations by selecting an offset. Ex: If your sensor consistently reports a humidity that's 6% higher then a similiar calibrated sensor, you'd enter \"-6\".", displayDuringSetup: false, type: "paragraph", element: "paragraph"
-                input "humidityOffset", "number", title: "Humidity Offset in Percent", description: "Adjust humidity by this percentage", range: "*..*", displayDuringSetup: false
+				input "humidityOffset", "number", title: "Humidity Offset in Percent", description: "Adjust humidity by this percentage", range: "*..*", displayDuringSetup: false
 		}
 	}
 
@@ -84,7 +75,7 @@ metadata {
 		valueTile("humidity", "device.humidity", decoration: "flat", inactiveLabel: false, width: 2, height: 2) {
 			state "humidity", label: '${currentValue}% humidity', unit: ""
 		}
-        valueTile("battery", "device.battery", decoration: "flat", inactiveLabel: false, width: 2, height: 2) {
+		valueTile("battery", "device.battery", decoration: "flat", inactiveLabel: false, width: 2, height: 2) {
 			state "battery", label: '${currentValue}% battery', unit: ""
 		}
 
@@ -204,14 +195,14 @@ def ping() {
 
 def refresh() {
 	//cmds += configure()
-    log.debug "Refreshing Temperature, Humidity and Battery"
+	log.debug "Refreshing Temperature, Humidity and Battery"
 	def refreshCmds = zigbee.readAttribute(zigbee.TEMPERATURE_MEASUREMENT_CLUSTER, 0x0000) +
 			zigbee.readAttribute(0x0405, 0x0000) +
-            zigbee.readAttribute(zigbee.POWER_CONFIGURATION_CLUSTER, 0x0020)
-            
+			zigbee.readAttribute(zigbee.POWER_CONFIGURATION_CLUSTER, 0x0020)
+			
 
 	return refreshCmds + zigbee.enrollResponse()
-    
+	
 }
 
 def configure() {
