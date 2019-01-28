@@ -23,7 +23,6 @@ metadata {
 		capability "Contact Sensor"
 		capability "Refresh"
 		capability "Temperature Measurement"
-		capability "Relative Humidity Measurement"
 		capability "Health Check"
 		capability "Sensor"
 
@@ -72,9 +71,6 @@ metadata {
 							[value: 96, color: "#bc2323"]
 					]
 		}
-		valueTile("humidity", "device.humidity", decoration: "flat", inactiveLabel: false, width: 2, height: 2) {
-			state "humidity", label: '${currentValue}% humidity', unit: ""
-		}
 		valueTile("battery", "device.battery", decoration: "flat", inactiveLabel: false, width: 2, height: 2) {
 			state "battery", label: '${currentValue}% battery', unit: ""
 		}
@@ -84,7 +80,7 @@ metadata {
 		}
 
 		main(["contact", "temperature"])
-		details(["contact", "temperature", "humidity", "battery", "refresh"])
+		details(["contact", "temperature", "battery", "refresh"])
 	}
 }
 
@@ -129,13 +125,7 @@ def parse(String description) {
 		}
 		map.descriptionText = temperatureScale == 'C' ? "${device.displayName} temperature was ${map.value}°C" : "${device.displayName} temperature was ${map.value}°F"
 		map.translatable = true
-	} else if (map.name == "humidity") {
-		if (humidityOffset) {
-			map.value = (int) map.value + (int) humidityOffset
-		}
-		map.descriptionText = "${device.displayName} humidity was ${map.value}%"
-	}
-
+	} 
 	log.debug "Parse returned $map"
 	def result = map ? createEvent(map) : [:]
 
@@ -197,7 +187,6 @@ def refresh() {
 	//cmds += configure()
 	log.debug "Refreshing Temperature, Humidity and Battery"
 	def refreshCmds = zigbee.readAttribute(zigbee.TEMPERATURE_MEASUREMENT_CLUSTER, 0x0000) +
-			zigbee.readAttribute(0x0405, 0x0000) +
 			zigbee.readAttribute(zigbee.POWER_CONFIGURATION_CLUSTER, 0x0020)
 			
 
@@ -213,7 +202,7 @@ def configure() {
 	// temperature minReportTime 30 seconds, maxReportTime 30 min. Reporting interval if no activity
 	// battery minReport 30 seconds, maxReportTime 6 hrs by default
 	log.debug "Configuring Reporting, IAS CIE, and Bindings."
-	def cmds = refresh() + zigbee.iasZoneConfig(30, 60 * 5) + zigbee.batteryConfig() + zigbee.temperatureConfig(30, 60 * 30) + zigbee.configureReporting(0x0405, 0x0000, DataType.UINT16, 30, 3600, 100)
+	def cmds = refresh() + zigbee.iasZoneConfig(30, 60 * 5) + zigbee.batteryConfig() + zigbee.temperatureConfig(30, 60 * 30)
 	
 	
 	return cmds
