@@ -207,13 +207,13 @@ def zwaveEvent(physicalgraph.zwave.commands.sensormultilevelv3.SensorMultilevelR
 		map.value = getTempInLocalScale(cmd.scaledSensorValue, cmd.scale == 1 ? "F" : "C")
 		map.unit = getTemperatureScale()
 		map.name = "temperature"
-		log.debug = "${device.displayName} temperature is ${map.value}"
+		log.debug "${device.displayName} temperature is ${map.value}"
 		updateThermostatSetpoint(null, null)
 	} else if (cmd.sensorType == 5) {
 		map.value = cmd.scaledSensorValue
 		map.unit = "%"
 		map.name = "humidity"
-		log.degub = "${device.displayName} humidity is ${map.value}%"
+		log.debug "${device.displayName} humidity is ${map.value}%"
 	}
 	sendEvent(map)
 }
