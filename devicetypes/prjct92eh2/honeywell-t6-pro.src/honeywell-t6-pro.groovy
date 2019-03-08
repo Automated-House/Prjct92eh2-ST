@@ -15,16 +15,16 @@ metadata {
 	definition (name: "Honeywell T6 Pro", namespace: "prjct92eh2", author: "prjct92eh2", mnmn:"SmartThings", vid: "SmartThings-smartthings-Z-Wave_Thermostat") {
 		capability "Actuator"
 		capability "Temperature Measurement"
-        capability "Relative Humidity Measurement"
+		capability "Relative Humidity Measurement"
 		capability "Thermostat"
 		capability "Refresh"
 		capability "Sensor"
 		capability "Health Check"
-        capability "Thermostat Heating Setpoint"
-        capability "Thermostat Cooling Setpoint"
-        capability "Thermostat Operating State"
-        capability "Thermostat Mode"
-        capability "Thermostat Fan Mode"
+		capability "Thermostat Heating Setpoint"
+		capability "Thermostat Cooling Setpoint"
+		capability "Thermostat Operating State"
+		capability "Thermostat Mode"
+		capability "Thermostat Fan Mode"
 		
 		attribute "thermostatFanState", "string"
 
@@ -42,7 +42,7 @@ metadata {
 		//fingerprint mfr:"008B", prod:"5452", model:"5439", deviceJoinName: "Trane Thermostat"
 		//fingerprint mfr:"008B", prod:"5452", model:"5442", deviceJoinName: "Trane Thermostat"
 		//fingerprint mfr:"008B", prod:"5452", model:"5443", deviceJoinName: "American Standard Thermostat"
-        fingerprint mfr:"0039", prod:"0011", model:"0008", deviceJoinName: "Honeywell T6 Pro Z-Wave Thermostat"//Added by prjct92eh2
+		fingerprint mfr:"0039", prod:"0011", model:"0008", deviceJoinName: "Honeywell T6 Pro Z-Wave Thermostat"//Added by prjct92eh2
 	}
 
 	tiles {
@@ -69,9 +69,9 @@ metadata {
 					]
 				)
 			}
-          tileAttribute("device.humidity", key: "SECONDARY_CONTROL") {
+		  tileAttribute("device.humidity", key: "SECONDARY_CONTROL") {
 				attributeState "humidity", label:'${currentValue}%'
-            }
+			}
 		}
 		standardTile("mode", "device.thermostatMode", width:2, height:2, inactiveLabel: false, decoration: "flat") {
 			state "off", action:"switchMode", nextState:"...", icon: "st.thermostat.heating-cooling-off"
@@ -111,15 +111,15 @@ metadata {
 		standardTile("refresh", "device.thermostatMode", width:2, height:2, inactiveLabel: false, decoration: "flat") {
 			state "default", action:"refresh.refresh", icon:"st.secondary.refresh"
 		}
-        valueTile("humidity", "device.humidity", width: 2, height: 2, inactiveLabel: false) {
-            state "humidity", label:' ${currentValue}%', icon:"st.Weather.weather12", backgroundColors: [
-                [value: 20, color: "#ffe700"],
-                [value: 30, color: "#d6ff00"],
-                [value: 45, color: "#3cff00"],
-                [value: 60, color: "#00ffb8"],
-                [value: 80, color: "#00dfff"]
-            ]
-        }        
+		valueTile("humidity", "device.humidity", width: 2, height: 2, inactiveLabel: false) {
+			state "humidity", label:' ${currentValue}%', icon:"st.Weather.weather12", backgroundColors: [
+				[value: 20, color: "#ffe700"],
+				[value: 30, color: "#d6ff00"],
+				[value: 45, color: "#3cff00"],
+				[value: 60, color: "#00ffb8"],
+				[value: 80, color: "#00dfff"]
+			]
+		}        
 		main "temperature"
 		details(["temperature", "lowerHeatingSetpoint", "heatingSetpoint", "raiseHeatingSetpoint", "lowerCoolSetpoint",
 				"coolingSetpoint", "raiseCoolSetpoint", "mode", "fanMode", "humidity", "thermostatOperatingState", "refresh"])
@@ -146,12 +146,12 @@ def updated() {
 
 def initialize() {
 	log.debug "Initializing the thermostat"
-    // Device-Watch simply pings if no device events received for 32min(checkInterval)
+	// Device-Watch simply pings if no device events received for 32min(checkInterval)
 	sendEvent(name: "checkInterval", value: 2 * 15 * 60 + 2 * 60, displayed: false, data: [protocol: "zwave", hubHardwareId: device.hub.hardwareID])
 	unschedule()
-    //Honeywell T6 Pro needs to be polled to bring in updated setpoints
+	//Honeywell T6 Pro needs to be polled to bring in updated setpoints
 	log.debug "Scheduling poll every 5 minutes"
-    runEvery5Minutes("poll")  // This is not necessary for non-T6 Honeywell Z-wave, but could be for other Z-wave thermostats
+	runEvery5Minutes("poll")  // This is not necessary for non-T6 Honeywell Z-wave, but could be for other Z-wave thermostats
 	pollDevice()
 }
 
@@ -182,10 +182,12 @@ def zwaveEvent(physicalgraph.zwave.commands.thermostatsetpointv2.ThermostatSetpo
 		case 1:
 			sendEvent(name: "heatingSetpoint", value: setpoint, unit: unit, displayed: false)
 			updateThermostatSetpoint("heatingSetpoint", setpoint)
+			log.debug "${device.displayName} heat set to $setpoint"
 			break;
 		case 2:
 			sendEvent(name: "coolingSetpoint", value: setpoint, unit: unit, displayed: false)
 			updateThermostatSetpoint("coolingSetpoint", setpoint)
+			log.debug "${device.displayName} cool set to $setpoint"
 			break;
 		default:
 			log.debug "unknown setpointType $cmd.setpointType"
@@ -205,11 +207,13 @@ def zwaveEvent(physicalgraph.zwave.commands.sensormultilevelv3.SensorMultilevelR
 		map.value = getTempInLocalScale(cmd.scaledSensorValue, cmd.scale == 1 ? "F" : "C")
 		map.unit = getTemperatureScale()
 		map.name = "temperature"
+		map.descriptionText = "${device.displayName} temperature was ${map.value}"
 		updateThermostatSetpoint(null, null)
 	} else if (cmd.sensorType == 5) {
 		map.value = cmd.scaledSensorValue
 		map.unit = "%"
 		map.name = "humidity"
+		map.descriptionText = "${device.displayName} humidity was ${map.value}%"
 	}
 	sendEvent(map)
 }
@@ -345,14 +349,19 @@ def zwaveEvent(physicalgraph.zwave.Command cmd) {
 def poll() {
 	// Call refresh which will cap the polling to once every 2 minutes
 	log.debug "Polling thermostat for updates"
-    refresh()
+	refresh()
 }
 
 def refresh() {
-	// Only allow refresh every 2 minutes to prevent flooding the Zwave network
+	// Only allow refresh every 4 minutes to prevent flooding the Zwave network
 	def timeNow = now()
-	if (!state.refreshTriggeredAt || (2 * 60 * 1000 < (timeNow - state.refreshTriggeredAt))) {
+	if (!state.refreshTriggeredAt || (4 * 60 * 1000 < (timeNow - state.refreshTriggeredAt))) {
 		state.refreshTriggeredAt = timeNow
+		if (!state.longRefreshTriggeredAt || (48 * 60 * 60 * 1000 < (timeNow - state.longRefreshTriggeredAt))) {
+			state.longRefreshTriggeredAt = timeNow
+			// poll supported modes once every 2 days: they're not likely to change
+			runIn(10, "longPollDevice", [overwrite: true])
+		}
 		// use runIn with overwrite to prevent multiple DTH instances run before state.refreshTriggeredAt has been saved
 		runIn(2, "pollDevice", [overwrite: true])
 	}
@@ -360,8 +369,6 @@ def refresh() {
 
 def pollDevice() {
 	def cmds = []
-	cmds << new physicalgraph.device.HubAction(zwave.thermostatModeV2.thermostatModeSupportedGet().format())
-	cmds << new physicalgraph.device.HubAction(zwave.thermostatFanModeV3.thermostatFanModeSupportedGet().format())
 	cmds << new physicalgraph.device.HubAction(zwave.thermostatModeV2.thermostatModeGet().format())
 	cmds << new physicalgraph.device.HubAction(zwave.thermostatFanModeV3.thermostatFanModeGet().format())
 	cmds << new physicalgraph.device.HubAction(zwave.sensorMultilevelV2.sensorMultilevelGet().format()) // current temperature
@@ -369,6 +376,14 @@ def pollDevice() {
 	cmds << new physicalgraph.device.HubAction(zwave.thermostatSetpointV1.thermostatSetpointGet(setpointType: 1).format())
 	cmds << new physicalgraph.device.HubAction(zwave.thermostatSetpointV1.thermostatSetpointGet(setpointType: 2).format())
 	sendHubCommand(cmds)
+}
+
+// these values aren't likely to change
+def longPollDevice() {
+	def cmds = []
+	cmds << new physicalgraph.device.HubAction(zwave.thermostatModeV2.thermostatModeSupportedGet().format())
+	cmds << new physicalgraph.device.HubAction(zwave.thermostatFanModeV3.thermostatFanModeSupportedGet().format())
+	sendHubCommands(cmds)
 }
 
 def raiseHeatingSetpoint() {
