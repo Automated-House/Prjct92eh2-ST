@@ -182,15 +182,15 @@ def zwaveEvent(physicalgraph.zwave.commands.thermostatsetpointv2.ThermostatSetpo
 		case 1:
 			sendEvent(name: "heatingSetpoint", value: setpoint, unit: unit, displayed: false)
 			updateThermostatSetpoint("heatingSetpoint", setpoint)
-			log.debug "${device.displayName} heat set to $setpoint"
+			log.debug "${device.displayName} heat is set to ${setpoint}"
 			break;
 		case 2:
 			sendEvent(name: "coolingSetpoint", value: setpoint, unit: unit, displayed: false)
 			updateThermostatSetpoint("coolingSetpoint", setpoint)
-			log.debug "${device.displayName} cool set to $setpoint"
+			log.debug "${device.displayName} cool is set to ${setpoint}"
 			break;
 		default:
-			log.debug "unknown setpointType $cmd.setpointType"
+			log.debug "unknown setpointType ${cmd.setpointType}"
 			return
 	}
 	// So we can respond with same format
@@ -207,13 +207,13 @@ def zwaveEvent(physicalgraph.zwave.commands.sensormultilevelv3.SensorMultilevelR
 		map.value = getTempInLocalScale(cmd.scaledSensorValue, cmd.scale == 1 ? "F" : "C")
 		map.unit = getTemperatureScale()
 		map.name = "temperature"
-		map.descriptionText = "${device.displayName} temperature was ${map.value}"
+		log.debug = "${device.displayName} temperature is ${map.value}"
 		updateThermostatSetpoint(null, null)
 	} else if (cmd.sensorType == 5) {
 		map.value = cmd.scaledSensorValue
 		map.unit = "%"
 		map.name = "humidity"
-		map.descriptionText = "${device.displayName} humidity was ${map.value}%"
+		log.degub = "${device.displayName} humidity is ${map.value}%"
 	}
 	sendEvent(map)
 }
@@ -223,24 +223,31 @@ def zwaveEvent(physicalgraph.zwave.commands.thermostatoperatingstatev1.Thermosta
 	switch (cmd.operatingState) {
 		case physicalgraph.zwave.commands.thermostatoperatingstatev1.ThermostatOperatingStateReport.OPERATING_STATE_IDLE:
 			map.value = "idle"
+            log.debug = "${device.displayName} is ${map.value}"
 			break
 		case physicalgraph.zwave.commands.thermostatoperatingstatev1.ThermostatOperatingStateReport.OPERATING_STATE_HEATING:
 			map.value = "heating"
+            log.debug = "${device.displayName} is ${map.value}"
 			break
 		case physicalgraph.zwave.commands.thermostatoperatingstatev1.ThermostatOperatingStateReport.OPERATING_STATE_COOLING:
 			map.value = "cooling"
+            log.debug = "${device.displayName} is ${map.value}"
 			break
 		case physicalgraph.zwave.commands.thermostatoperatingstatev1.ThermostatOperatingStateReport.OPERATING_STATE_FAN_ONLY:
 			map.value = "fan only"
+            log.debug = "${device.displayName} is ${map.value}"
 			break
 		case physicalgraph.zwave.commands.thermostatoperatingstatev1.ThermostatOperatingStateReport.OPERATING_STATE_PENDING_HEAT:
 			map.value = "pending heat"
+            log.debug = "${device.displayName} is ${map.value}"
 			break
 		case physicalgraph.zwave.commands.thermostatoperatingstatev1.ThermostatOperatingStateReport.OPERATING_STATE_PENDING_COOL:
 			map.value = "pending cool"
+            log.debug = "${device.displayName} is ${map.value}"
 			break
 		case physicalgraph.zwave.commands.thermostatoperatingstatev1.ThermostatOperatingStateReport.OPERATING_STATE_VENT_ECONOMIZER:
 			map.value = "vent economizer"
+            log.debug = "${device.displayName} is ${map.value}"
 			break
 	}
 	// Makes sure we have the correct thermostat mode
@@ -383,7 +390,7 @@ def longPollDevice() {
 	def cmds = []
 	cmds << new physicalgraph.device.HubAction(zwave.thermostatModeV2.thermostatModeSupportedGet().format())
 	cmds << new physicalgraph.device.HubAction(zwave.thermostatFanModeV3.thermostatFanModeSupportedGet().format())
-	sendHubCommands(cmds)
+	sendHubCommand(cmds)
 }
 
 def raiseHeatingSetpoint() {
