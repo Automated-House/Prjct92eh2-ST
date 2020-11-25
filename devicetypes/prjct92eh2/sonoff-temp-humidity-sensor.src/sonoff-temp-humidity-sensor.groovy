@@ -171,7 +171,7 @@ def refresh() {
 		return zigbee.readAttribute(zigbee.POWER_CONFIGURATION_CLUSTER, 0x0021, [destEndpoint: 0x01])+
 			zigbee.readAttribute(0x0402, 0x0000, [destEndpoint: 0x01])+
 			zigbee.readAttribute(0x0405, 0x0000, [destEndpoint: 0x02])
-	} else if (isFrientSensor()) {
+	} else if (isFrientSensor() || iseWeLink()) {
 		return zigbee.readAttribute(zigbee.POWER_CONFIGURATION_CLUSTER, 0x0020)+
 			zigbee.readAttribute(zigbee.TEMPERATURE_MEASUREMENT_CLUSTER, 0x0000)+
 			zigbee.readAttribute(zigbee.RELATIVE_HUMIDITY_CLUSTER, 0x0000)
