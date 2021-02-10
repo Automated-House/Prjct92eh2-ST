@@ -16,7 +16,7 @@
 import physicalgraph.zigbee.zcl.DataType
 
 metadata {
-	definition(name: "Sonoff Temp/Humidity Sensor", namespace: "prjct92eh2", author: "prjct92eh2", ocfDeviceType: "oic.d.thermostat", mnmn:"SmartThings", vid:"generic-humidity") {
+	definition(name: "Sonoff Temp/Humidity Sensor", namespace: "prjct92eh2", author: "prjct92eh2", ocfDeviceType: "oic.d.thermostat", mnmm: "SmartThingsCommunity", vid: "723bd014-f25a-4d02-b7c6-9ec15fae591a") {
 		capability "Configuration"
 		capability "Battery"
 		capability "Refresh"
@@ -35,6 +35,7 @@ metadata {
 		fingerprint profileId: "0104",  inClusters: "0000, 0001, 0003, 0402, 0B05", manufacturer: "HEIMAN", model: "HT-EF-3.0", deviceJoinName: "HEIMAN Multipurpose Sensor" //HEIMAN Temperature & Humidity Sensor
 		fingerprint profileId: "0104", deviceId: "0302", inClusters: "0000,0001,0003,0020,0402,0405", outClusters: "0003,000A,0019", manufacturer: "frient A/S", model :"HMSZB-110", deviceJoinName: "frient Multipurpose Sensor" // frient Humidity Sensor*/
         fingerprint profileId: "0104", deviceId: "0302", inClusters: "0000,0001,0003,0402,0405", outClusters: "0003", manufacturer: "eWeLink", model :"66666", deviceJoinName: "Sonoff Multipurpose Sensor"
+        fingerprint profileId: "0104", inClusters: "0000,0003,0402,0405", outClusters: "0003", manufacturer: "eWeLink", model: "TH01",deviceJoinName: "Sonoff Multipurpose Sensor"
 	}
 
 	simulator {
@@ -206,8 +207,8 @@ def configure() {
 	} else if (iseWeLink()) {
 		log.debug "Configuring eWeLink"
         return refresh() + 
-			zigbee.configureReporting(zigbee.RELATIVE_HUMIDITY_CLUSTER, 0x0000, DataType.UINT16, 60, 600, 1*100) +
-            zigbee.configureReporting(zigbee.TEMPERATURE_MEASUREMENT_CLUSTER, 0x0000, DataType.UINT16, 30, 3600, 100)+
+			zigbee.configureReporting(zigbee.RELATIVE_HUMIDITY_CLUSTER, 0x0000, DataType.UINT16, 120, 3600, 1*100) +
+            zigbee.configureReporting(zigbee.TEMPERATURE_MEASUREMENT_CLUSTER, 0x0000, DataType.UINT16, 120, 3600, 100)+
 			zigbee.batteryConfig()
     } else {
 		return refresh() +
